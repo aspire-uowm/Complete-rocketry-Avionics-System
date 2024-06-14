@@ -15,11 +15,7 @@ from mpu6050 import mpu6050
 ####  bmp280  ####
 def init_bmp280():
     i2c = board.I2C()
-    sensor = adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
-
-    print('Temperature: {} degrees C'.format(sensor.temperature))
-    print('Pressure: {}hPa'.format(sensor.pressure))
-
+    return adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
 
 #### RH_Rfm69 ####
 
@@ -32,28 +28,14 @@ def init_rfm69():
     RESET = digitalio.DigitalInOut(board.D25)  # Adjust if using a different pin
 
     # Initialize the RFM69 module
-    rfm69 = adafruit_rfm69.RFM69(spi, CS, RESET, 915.0)  # Adjust frequency as needed
-
-    # Print a confirmation message
-    print("RFM69 initialized successfully!")
-
-    # Send a test message
-    message = "Hello, world!"
-
-    #while True:
-    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
-    print("Sent:", message)
-
+    return adafruit_rfm69.RFM69(spi, CS, RESET, 915.0)  # Adjust frequency as needed
 
 #### mpu6050 ####
 
 def init_mpu6050():    
     sensor = mpu6050(0x68)
 
-    accelerometer_data = sensor.get_accel_data()
-
-    print(accelerometer_data);
-
+    return sensor.get_accel_data()
 
 #### Neo-6M ####
 
@@ -118,8 +100,22 @@ def convert_to_degrees(raw_value):
 #### Main ####
 
 if __name__ == "__main__":
-    init_bmp280()
-    init_rfm69()
-    init_mpu6050()
+    sensor = init_bmp280()
+    print('Temperature: {} degrees C'.format(sensor.temperature))
+    print('Pressure: {}hPa'.format(sensor.pressure))
+
+
+    rfm69 = init_rfm69()
+    # Print a confirmation message
+    print("RFM69 initialized successfully!")
+
+    # Send a test message
+    message = "Hello, world!"
+    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+    print("Sent:", message)
+
+    accelerometer_data = init_mpu6050()
+    print(accelerometer_data);
+
     gps_data = read_gps_data()
     print(gps_data)
