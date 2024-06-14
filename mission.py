@@ -17,19 +17,6 @@ def init_bmp280():
     i2c = board.I2C()
     return adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
 
-#### RH_Rfm69 ####
-
-def init_rfm69():
-    # Define the SPI bus
-    spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-
-    # Define the CS (Chip Select) and RST (Reset) pins
-    CS = digitalio.DigitalInOut(board.D5)  # Adjust if using a different pin
-    RESET = digitalio.DigitalInOut(board.D25)  # Adjust if using a different pin
-
-    # Initialize the RFM69 module
-    return adafruit_rfm69.RFM69(spi, CS, RESET, 915.0)  # Adjust frequency as needed
-
 #### mpu6050 ####
 
 def init_mpu6050():    
@@ -97,6 +84,19 @@ def convert_to_degrees(raw_value):
     except ValueError:
         return None
 
+#### RH_Rfm69 ####
+
+def init_rfm69():
+    # Define the SPI bus
+    spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+
+    # Define the CS (Chip Select) and RST (Reset) pins
+    CS = digitalio.DigitalInOut(board.D5)  # Adjust if using a different pin
+    RESET = digitalio.DigitalInOut(board.D25)  # Adjust if using a different pin
+
+    # Initialize the RFM69 module
+    return adafruit_rfm69.RFM69(spi, CS, RESET, 915.0)  # Adjust frequency as needed
+
 #### Main ####
 
 if __name__ == "__main__":
@@ -104,6 +104,11 @@ if __name__ == "__main__":
     print('Temperature: {} degrees C'.format(sensor.temperature))
     print('Pressure: {}hPa'.format(sensor.pressure))
 
+    accelerometer_data = init_mpu6050()
+    print(accelerometer_data);
+
+    gps_data = read_gps_data()
+    print(gps_data)
 
     rfm69 = init_rfm69()
     # Print a confirmation message
@@ -114,8 +119,19 @@ if __name__ == "__main__":
     rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
     print("Sent:", message)
 
-    accelerometer_data = init_mpu6050()
-    print(accelerometer_data);
+    #TODO: after the following TODOs are done, merge all in one or two messages and remove hello message
 
-    gps_data = read_gps_data()
-    print(gps_data)
+    # encapsulate data and transmmit
+    message = str(sensor.temperature) + ", " + str(sensor.pressure)
+    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+    print("Sent:", message)
+
+    #TODO: cut string to only give the valuable data
+    message = str(accelerometer_data) 
+    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+    print("Sent:", message)
+
+    #TODO: cut string to only give the valuable data
+    message = str(gps_data)
+    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+    print("Sent:", message)
