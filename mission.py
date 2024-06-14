@@ -126,12 +126,17 @@ if __name__ == "__main__":
     rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
     print("Sent:", message)
 
-    #TODO: cut string to only give the valuable data
-    message = str(accelerometer_data) 
+    message = str(','.join(map(str,accelerometer_data.values()))) 
     rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
     print("Sent:", message)
 
-    #TODO: cut string to only give the valuable data
-    message = str(gps_data)
+    #TODO: test below string for real gps data
+    message = str(','.join(map(str,gps_data.values())))
+    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+    print("Sent:", message)
+
+    #tested for all above messages combined, cant be sent in a single packet excecpt if size is reduces somehow
+    message = str(sensor.temperature) + ", " + str(sensor.pressure) + ", " + str(','.join(map(str,accelerometer_data.values()))) + ", " + str(','.join(map(str,gps_data.values())))
+    print(len(message))
     rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
     print("Sent:", message)
