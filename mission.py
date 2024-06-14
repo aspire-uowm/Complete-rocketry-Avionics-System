@@ -13,15 +13,14 @@ from mpu6050 import mpu6050
 
 
 ####  bmp280  ####
-def init_bmp280():
+def read_bmp280_data():
     i2c = board.I2C()
     return adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
 
 #### mpu6050 ####
 
-def init_mpu6050():    
+def read_mpu6050_data():    
     sensor = mpu6050(0x68)
-
     return sensor.get_accel_data()
 
 #### Neo-6M ####
@@ -100,43 +99,43 @@ def init_rfm69():
 #### Main ####
 
 if __name__ == "__main__":
-    sensor = init_bmp280()
-    print('Temperature: {} degrees C'.format(sensor.temperature))
-    print('Pressure: {}hPa'.format(sensor.pressure))
+    while True:
+        sensor = read_bmp280_data()
+        print('Temperature: {} degrees C'.format(sensor.temperature))
+        print('Pressure: {}hPa'.format(sensor.pressure))
 
-    accelerometer_data = init_mpu6050()
-    print(accelerometer_data);
+        accelerometer_data = read_mpu6050_data()
+        print(accelerometer_data);
 
-    gps_data = read_gps_data()
-    print(gps_data)
+        gps_data = read_gps_data()
+        print(gps_data)
 
-    rfm69 = init_rfm69()
-    # Print a confirmation message
-    print("RFM69 initialized successfully!")
+        rfm69 = init_rfm69()
+        # Print a confirmation message
+        print("RFM69 initialized successfully!")
 
-    # Send a test message
-    message = "Hello, world!"
-    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
-    print("Sent:", message)
+        # Send a test message
+        message = "Hello, world!"
+        rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+        print("Sent:", message)
 
-    #TODO: after the following TODOs are done, merge all in one or two messages and remove hello message
+        # encapsulate data and transmmit
+        message = str(sensor.temperature) + ", " + str(sensor.pressure)
+        rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+        print("Sent:", message)
 
-    # encapsulate data and transmmit
-    message = str(sensor.temperature) + ", " + str(sensor.pressure)
-    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
-    print("Sent:", message)
+        message = str(','.join(map(str,accelerometer_data.values()))) 
+        rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+        print("Sent:", message)
 
-    message = str(','.join(map(str,accelerometer_data.values()))) 
-    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
-    print("Sent:", message)
+        #TODO: test below string for real gps data
+        message = str(','.join(map(str,gps_data.values())))
+        rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+        print("Sent:", message)
 
-    #TODO: test below string for real gps data
-    message = str(','.join(map(str,gps_data.values())))
-    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
-    print("Sent:", message)
-
-    #tested for all above messages combined, cant be sent in a single packet excecpt if size is reduces somehow
-    message = str(sensor.temperature) + ", " + str(sensor.pressure) + ", " + str(','.join(map(str,accelerometer_data.values()))) + ", " + str(','.join(map(str,gps_data.values())))
-    print(len(message))
-    rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
-    print("Sent:", message)
+        #tested for all above messages combined, cant be sent in a single packet excecpt if size is reduces somehow
+        #decide on packet transmittion strategy, how many packets? retransmitions, packet Sync e.t.c.
+        #message = str(sensor.temperature) + ", " + str(sensor.pressure) + ", " + str(','.join(map(str,accelerometer_data.values()))) + ", " + str(','.join(map(str,gps_data.values())))
+        #print(len(message))
+        #rfm69.send(bytes(message, "utf-8"))  # Encode string to bytes
+        #print("Sent:", message)
