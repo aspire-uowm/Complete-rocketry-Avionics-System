@@ -4,6 +4,7 @@ import time
 def read_gps_data():
     # Open serial port
     ser = serial.Serial('/dev/serial0', 9600, timeout=1)
+    data = None
     i = 0
 
 
@@ -14,7 +15,8 @@ def read_gps_data():
             # Read a line of data from the GPS module
             line = ser.readline().decode('ascii', errors='replace')
             if line.startswith('$GPGGA'):
-                print(parse_gpgga(line))
+                data = parse_gpgga(line)
+                break
         except KeyboardInterrupt:
             print("Stopping GPS reading")
             break
@@ -22,6 +24,8 @@ def read_gps_data():
             print(f"Error: {e}")
             continue
     ser.close()
+
+    return data
 
 def parse_gpgga(data):
     parts = data.split(',')
@@ -61,4 +65,5 @@ def convert_to_degrees(raw_value):
 
 if __name__ == "__main__":
     print("Reading GPS data...")
-    read_gps_data()
+    data = read_gps_data()
+    print(data)
